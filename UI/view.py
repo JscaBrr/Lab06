@@ -1,46 +1,60 @@
 import flet as ft
 
-
 class View(ft.UserControl):
     def __init__(self, page: ft.Page):
         super().__init__()
         # page stuff
         self._page = page
-        self._page.title = "Template application using MVC and DAO"
+        self._page.title = "Lab06"
         self._page.horizontal_alignment = 'CENTER'
         self._page.theme_mode = ft.ThemeMode.DARK
         # controller (it is not initialized. Must be initialized in the main, after the controller is created)
         self._controller = None
         # graphical elements
         self._title = None
-        self.txt_name = None
-        self.btn_hello = None
-        self.txt_result = None
-        self.txt_container = None
+        self.ddAnno = None
+        self.ddBrand = None
+        self.ddRetailer = None
+        self.btnTopVendite = None
+        self.btnAnalizzaVendite = None
+
+    def change_theme(self, e):
+        if self._page.theme_mode == ft.ThemeMode.DARK:
+            self._page.theme_mode = ft.ThemeMode.LIGHT
+            self.theme.label = "Light Theme"
+        else:
+            self._page.theme_mode = ft.ThemeMode.DARK
+            self.theme.label = "Dark Theme"
+        self._page.update()
 
     def load_interface(self):
-        # title
-        self._title = ft.Text("Hello World", color="blue", size=24)
-        self._page.controls.append(self._title)
-
-        #ROW with some controls
-        # text field for the name
-        self.txt_name = ft.TextField(
-            label="name",
-            width=200,
-            hint_text="Insert a your name"
-        )
-
-        # button for the "hello" reply
-        self.btn_hello = ft.ElevatedButton(text="Hello", on_click=self._controller.handle_hello)
-        row1 = ft.Row([self.txt_name, self.btn_hello],
-                      alignment=ft.MainAxisAlignment.CENTER)
-        self._page.controls.append(row1)
-
-        # List View where the reply is printed
-        self.txt_result = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
-        self._page.controls.append(self.txt_result)
-        self._page.update()
+        self.theme = ft.Switch(label = "Dark Theme", on_change = self.change_theme)
+        self._title = ft.Text("Analizza Vendite", color="grey", size=24)
+        self._page.controls.append(ft.Row([self._title], ft.MainAxisAlignment.CENTER))
+        self._page.controls.append(ft.Row([self.theme], ft.MainAxisAlignment.START))
+        self.ddAnno = ft.Dropdown(label = "anno",
+                                  width = 300,
+                                  on_change = self._controller.handleAnno
+                                )
+        self._controller.fillddAnno()
+        self.ddBrand = ft.Dropdown(label = "brand",
+                                   width = 300,
+                                   on_change = self._controller.handleBrand)
+        self._controller.fillddBrand()
+        self.ddRetailer = ft.Dropdown(label = "retailer",
+                                      width = 500,
+                                      on_change = self._controller.handleRetailer)
+        self._controller.fillddRetailer()
+        self.btnTopVendite = ft.ElevatedButton(text = "Top vendite",
+                                               width = 200,
+                                               on_click = self._controller.handleTopVendite)
+        self.btnStatisticheVendite = ft.ElevatedButton(text = "Analizza Vendite",
+                                                    width = 200,
+                                                    on_click = self._controller.handleStatisticheVendite)
+        self.lvTxtOut = ft.ListView(expand=True)
+        self._page.add(ft.Row([self.ddAnno, self.ddBrand, self.ddRetailer], alignment = ft.MainAxisAlignment.CENTER))
+        self._page.add(ft.Row([self.btnTopVendite, self.btnStatisticheVendite], alignment = ft.MainAxisAlignment.CENTER))
+        self._page.add( self.lvTxtOut)
 
     @property
     def controller(self):
@@ -53,10 +67,16 @@ class View(ft.UserControl):
     def set_controller(self, controller):
         self._controller = controller
 
-    def create_alert(self, message):
-        dlg = ft.AlertDialog(title=ft.Text(message))
+    def alert(self, message):
+        dlg = ft.AlertDialog(title = ft.Row([ft.Icon(ft.icons.ERROR, color = "red"), ft.Text("Errore:", color = "red")]),
+                             content = ft.Text(message, color = "red"),
+                             actions = [ft.TextButton("OK", on_click=lambda e: self.closealert(dlg))])
         self._page.dialog = dlg
         dlg.open = True
+        self._page.update()
+
+    def closealert(self, dlg):
+        dlg.open = False
         self._page.update()
 
     def update_page(self):
